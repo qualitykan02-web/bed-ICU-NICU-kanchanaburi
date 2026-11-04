@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard ข้อมูลการใช้เตียง</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#243b53;--mut:#5f7387;--teal:#3f9b9a;--blue:#5b8fc7;--sage:#8bbf9f;--sand:#f4ead3;--coral:#e59a7a;--line:#dbe6ec;--y1:#8aa5c8;--y2:#3f9b9a;--y3:#e59a7a}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Sarabun',sans-serif;font-size:16px;color:var(--ink);background:linear-gradient(160deg,#eef6f6,#f5f1e6 55%,#eaf1f9);min-height:100vh;padding:20px}
+.wrap{max-width:1300px;margin:auto}
+header{display:flex;align-items:center;gap:22px;padding:16px 24px;border-radius:24px;background:linear-gradient(120deg,#dff0ee,#eaf1fa 60%,#f6efdc);border:1px solid var(--line);box-shadow:0 6px 22px rgba(70,110,130,.12);flex-wrap:wrap}
+h1{font-size:1.6rem;font-weight:700;color:#1f4e63}
+.sub{color:var(--mut);margin-top:4px}
+.live{margin-left:auto;text-align:right;font-size:.88rem;color:var(--mut)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#43b581;margin-right:6px;animation:p 1.8s infinite}
+.dot.err{background:#e5675d}
+@keyframes p{0%{box-shadow:0 0 0 0 rgba(67,181,129,.6)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
+button{font-family:inherit;cursor:pointer}
+.btn{background:#fff;border:1px solid #bcd3dc;color:#1f4e63;border-radius:10px;padding:6px 14px;font-weight:600;margin-top:6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.chip{background:#fff;border:1px solid #c9dbe3;color:var(--mut);border-radius:20px;padding:7px 18px;font-weight:600;font-size:.95rem}
+.chip.on{background:linear-gradient(135deg,#6fb7b5,#4a9a9a);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(63,155,154,.3)}
+.grid{display:grid;gap:16px;margin-top:16px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(255px,1fr))}
+.two{grid-template-columns:2fr 1fr}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px 20px;box-shadow:0 4px 16px rgba(70,110,130,.09)}
+.kpi h3{font-size:1rem;color:#1f4e63;display:flex;justify-content:space-between;align-items:center}
+.kpi .tag{font-size:.75rem;color:var(--mut);font-weight:400}
+.kpi:nth-child(1){background:#eef7f6}.kpi:nth-child(2){background:#eef4fb}.kpi:nth-child(3){background:#f3f8ee}.kpi:nth-child(4){background:#fbf5e6}
+.pair{display:flex;gap:18px;margin-top:8px}
+.big{font-size:2rem;font-weight:700;color:#1f4e63;line-height:1.2}
+.lbl{font-size:.82rem;color:var(--mut)}
+.dl{font-size:.82rem;font-weight:600}.up{color:#2f8f6b}.dn{color:#c76f52}
+.card h2{font-size:1.05rem;color:#1f4e63;margin-bottom:8px}
+select{font-family:inherit;font-size:.95rem;background:#fff;border:1px solid #c9dbe3;color:var(--ink);border-radius:10px;padding:7px 12px}
+.leg{display:flex;gap:14px;font-size:.88rem;color:var(--mut);margin:4px 0 8px}
+.leg i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}
+svg text{font-family:'Sarabun',sans-serif}
+.tw{overflow:auto;max-height:430px}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th{background:#dcecee;color:#1f4e63;padding:9px;text-align:right;position:sticky;top:0;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:8px 9px;text-align:right;border-bottom:1px solid #eef2f5}
+tr:nth-child(even) td{background:#f8fbfc}
+tr.tot td{background:#f4ead3;font-weight:700}
+.ins li{margin:9px 0 9px 18px;line-height:1.7;font-size:.97rem}
+.warn{background:#fff6e5;border:1px solid #f1dcaa;border-radius:12px;padding:10px 14px;font-size:.86rem;color:#7a5a12;margin-top:10px;line-height:1.6}
+.stack{display:flex;height:22px;border-radius:11px;overflow:hidden;margin:8px 0}
+footer{text-align:center;color:var(--mut);font-size:.8rem;margin:22px 0 6px}
+@keyframes ecg{from{stroke-dashoffset:300}to{stroke-dashoffset:0}}
+.ecg{stroke-dasharray:300;animation:ecg 2.4s linear infinite}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <!-- ภาพเตียงผู้ป่วยและจอมอนิเตอร์ -->
+  <svg width="260" height="130" viewBox="0 0 260 130" aria-label="เตียงผู้ป่วยและจอมอนิเตอร์">
+    <defs>
+      <linearGradient id="fr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6eef2"/><stop offset="1" stop-color="#9fb3bf"/></linearGradient>
+      <linearGradient id="mt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d6e3ea"/></linearGradient>
+      <linearGradient id="bl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ad3cf"/><stop offset="1" stop-color="#5fa8a6"/></linearGradient>
+      <linearGradient id="sc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#173646"/><stop offset="1" stop-color="#0d222d"/></linearGradient>
+      <radialGradient id="pl" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#cfdde5"/></radialGradient>
+      <filter id="sd"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#2a4a5a" flood-opacity=".3"/></filter>
+    </defs>
+    <ellipse cx="105" cy="120" rx="95" ry="7" fill="#2a4a5a" opacity=".18"/>
+    <g filter="url(#sd)">
+      <rect x="14" y="40" width="9" height="62" rx="4" fill="url(#fr)"/>
+      <rect x="176" y="52" width="9" height="50" rx="4" fill="url(#fr)"/>
+      <rect x="18" y="82" width="162" height="8" rx="4" fill="url(#fr)"/>
+      <rect x="22" y="58" width="154" height="26" rx="9" fill="url(#mt)"/>
+      <ellipse cx="46" cy="55" rx="24" ry="9" fill="url(#pl)"/>
+      <path d="M72 52c30-5 70-4 104 4v28H72Z" fill="url(#bl)"/>
+      <path d="M72 62c34-3 66-2 104 3" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>
+      <circle cx="30" cy="106" r="6" fill="#58707e"/><circle cx="170" cy="106" r="6" fill="#58707e"/>
+    </g>
+    <!-- เสาน้ำเกลือ -->
+    <g><rect x="196" y="22" width="3" height="84" rx="1.5" fill="#9fb3bf"/><path d="M183 26h30" stroke="#9fb3bf" stroke-width="3" stroke-linecap="round"/>
+    <path d="M205 28c-9 2-9 20 0 26 9-6 9-24 0-26Z" fill="#cfe9f0" stroke="#8fb6c4" stroke-width="1.5"/><path d="M199 54c0 14 6 20 0 34" fill="none" stroke="#8fb6c4" stroke-width="1.5"/></g>
+    <!-- จอมอนิเตอร์ -->
+    <g filter="url(#sd)"><rect x="214" y="34" width="40" height="30" rx="5" fill="#dfe8ed"/><rect x="217" y="37" width="34" height="22" rx="3" fill="url(#sc)"/>
+    <path class="ecg" d="M219 49h6l3-7 4 14 3-7h4l3-3 3 3h6" fill="none" stroke="#6fe0a8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="231" y="64" width="6" height="12" fill="#b9c9d2"/><rect x="224" y="76" width="20" height="4" rx="2" fill="#b9c9d2"/></g>
+  </svg>
+  <div><h1 id="ttl">Dashboard ข้อมูลการใช้เตียง</h1><div class="sub">ICU · Semi ICU · NICU · ห้องผ่าตัด · ปีงบประมาณ 2568–2570 (ต.ค.–ก.ย.)</div></div>
+  <div class="live">
+    <div><span class="dot" id="dot"></span><span id="st">กำลังเชื่อมต่อ...</span></div>
+    <div id="upd">-</div>
+    <div>รีเฟรชอัตโนมัติอีก <b id="cd">45</b> วินาที</div>
+    <button class="btn" onclick="load()">↻ รีเฟรชทันที</button>
+  </div>
+</header>
+
+<div class="chips" id="yrs"></div>
+<div class="grid kpis" id="kpis"></div>
+
+<div class="grid two">
+  <div class="card">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+      <h2 id="ct">แนวโน้มรายเดือน</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><select id="us" onchange="UI.u=+this.value;render()"></select><select id="ms" onchange="UI.m=+this.value;render()"></select></div>
+    </div>
+    <div class="leg" id="leg"></div>
+    <svg id="ch" viewBox="0 0 760 300" width="100%"></svg>
+  </div>
+  <div class="card">
+    <h2>ประเด็นสำคัญ (สร้างอัตโนมัติ)</h2>
+    <ul class="ins" id="ins"></ul>
+    <h2 style="margin-top:12px">สัดส่วนวันนอนหน่วยวิกฤต</h2>
+    <div id="stk"></div>
+    <div class="warn" id="warn"></div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px"><h2 id="tt">ตารางรายเดือน</h2><div class="tw"><table id="tb"></table></div></div>
+<footer>ข้อมูลจาก Google Sheets · แก้ไขใน Sheet แล้ว Dashboard อัปเดตเองอัตโนมัติทุก 45 วินาที</footer>
+</div>
+
+<script>
+/* ===== ตั้งค่าการเชื่อมต่อ ===== */
+const SHEET_ID="1KaygG2tIzbumgOthOfdT4IS43lxa_XyrXzMioXdIQXE", GID=0;
+/* ถ้าใช้ Publish to web (CSV) ให้ใส่ลิงก์ที่นี่ จะถูกใช้ก่อน */
+const PUBLISHED_CSV_URL="";
+const REFRESH_SEC=45; /* ปรับได้ 30–60 */
+
+const MONTHS=['ตุลาคม','พฤศจิกายน','ธันวาคม','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน'];
+const SH=['ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.'];
+const YEARS=[2568,2569,2570],YC=['#8aa5c8','#3f9b9a','#e59a7a'];
+const UNITS=[
+ {n:'ICU',c:1,l:['จำนวนผู้ป่วย (ราย)','จำนวนวันนอน (วัน)'],col:'#3f9b9a'},
+ {n:'Semi ICU',c:7,l:['จำนวนผู้ป่วย (ราย)','จำนวนวันนอน (วัน)'],col:'#5b8fc7'},
+ {n:'NICU',c:13,l:['จำนวนผู้ป่วย (ราย)','จำนวนวันนอน (วัน)'],col:'#8bbf9f'},
+ {n:'ห้องผ่าตัด (OR)',c:19,l:['จำนวนผู้ป่วยผ่าตัด (ราย)','อัตราการใช้ห้องผ่าตัด (%)'],col:'#d9b26a',or:true}];
+/* ข้อมูลสำรอง กรณีเปิดแบบออฟไลน์ */
+const e=['',''];const fb=(m,a,b,c,d)=>[m,...[a,b,c,d].flatMap(x=>{x=x.slice();while(x.length<6)x.push('');return x})];
+const FALLBACK=[
+ fb('ตุลาคม',[246,935,248,985,'49+51','332+302'],[50,313,49,326],[62,316,55,367,26,268],[1528,77.52,1577,70.97,1116,61.95]),
+ fb('พฤศจิกายน',[233,993,258,940],[44,282,56,354],[50,313,52,408],[1490,73.65,1530,76.98]),
+ fb('ธันวาคม',[227,972,239,876],[57,390,42,333],[41,301,39,275],[1385,72.62,1535,76.30]),
+ fb('มกราคม',[253,994,248,962],[44,304,62,457],[41,274,40,229],[1568,74.19,1576,75.51]),
+ fb('กุมภาพันธ์',[203,888,211,1288],[35,269,56,323],[42,215,47,271],[1307,69.06,1574,71.85]),
+ fb('มีนาคม',[215,966,212,1340],[38,313,67,328],[36,257,48,260],[1543,73.64,1578,63.82]),
+ fb('เมษายน',[243,860,213,1329],[31,329,55,233],[43,324,45,235],[1358,71.54,1458,69.1]),
+ fb('พฤษภาคม',[228,954,274,1346],[74,300,44,315],[50,376,34,264],[1491,74.64,1098,75.15]),
+ fb('มิถุนายน',[234,888,221,1344],[53,355,39,298],[38,329,21,190],[1421,70.55,1167,54.16]),
+ fb('กรกฎาคม',[218,862,210,1331],[50,370,36,255],[44,358,40,294],[1466,69.64,1151,58.88]),
+ fb('สิงหาคม',[226,905,227,1395],[51,403,74,354],[44,270,41,325],[1480,77.86,1134,60.83]),
+ fb('กันยายน',[254,910,244,1336],[60,341,81,366],[55,329,37,282],[1525,70.81,1185,60.44])];
+
+const $=id=>document.getElementById(id),fmt=(n,d=0)=>Number(n).toLocaleString('th-TH',{maximumFractionDigits:d,minimumFractionDigits:d});
+const UI={y:1,u:0,m:0};let ROWS={},TOTROW=null,FLAGS=[],cd=REFRESH_SEC,live=false;
+
+function parseCSV(t){const r=[];let row=[],c="",q=false;
+ for(let i=0;i<t.length;i++){const ch=t[i];
+  if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else q=false}else c+=ch}
+  else if(ch=='"')q=true;else if(ch==',')(row.push(c),c="");
+  else if(ch=='\n'||ch=='\r'){if(ch=='\r'&&t[i+1]=='\n')i++;row.push(c);r.push(row);row=[];c=""}
+  else c+=ch}
+ if(c||row.length){row.push(c);r.push(row)}return r}
+
+function val(s){s=String(s==null?'':s).replace(/[,\s]/g,'');if(!s)return null;
+ if(/^[\d.]+(\+[\d.]+)+$/.test(s))return s.split('+').reduce((a,b)=>a+parseFloat(b),0);
+ const n=parseFloat(s);return isNaN(n)?null:n}
+function cell(m,u,yi,k){const col=u.c+yi*2+k;return val(ROWS[m]&&ROWS[m][col])}
+
+function build(rows){
+ ROWS={};TOTROW=null;FLAGS=[];
+ rows.forEach(r=>{const f=(r[0]||'').trim();const mi=MONTHS.findIndex(m=>f.startsWith(m));
+  if(mi>=0)ROWS[mi]=r;else if(f.startsWith('รวม'))TOTROW=r});
+ if(!Object.keys(ROWS).length)throw new Error('no rows');
+ UNITS.forEach((u,ui)=>YEARS.forEach((y,yi)=>{
+  for(let m=0;m<12;m++)for(let k=0;k<2;k++){const raw=ROWS[m]&&ROWS[m][u.c+yi*2+k];
+   if(raw&&/\+/.test(raw))FLAGS.push(`${u.n} ปี ${y} เดือน${MONTHS[m]} (${u.l[k].split(' ')[0]}): พบค่า "${raw}" ระบบรวมเป็น ${fmt(val(raw),0)} กรุณาตรวจสอบว่าเป็นการรวมหลายหน่วยหรือไม่`)}
+  if(TOTROW)for(let k=0;k<2;k++){const t=val(TOTROW[u.c+yi*2+k]);if(t===null)continue;
+   const s=ser(u,yi,k).reduce((a,b)=>a+(b||0),0);
+   if(Math.abs(t-s)/Math.max(t,1)>.005)FLAGS.push(`${u.n} ปี ${y} (${u.l[k].split(' ')[0]}): แถวรวมในชีต ${fmt(t,k&&u.or?2:0)} ≠ ผลรวมรายเดือน ${fmt(s,k&&u.or?2:0)}`)}
+ }));
+}
+const ser=(u,yi,k)=>Array.from({length:12},(_,m)=>cell(m,u,yi,k));
+/* รวม/เฉลี่ย เฉพาะเดือนที่ระบุ */
+function agg(u,yi,months){
+ const a=ser(u,yi,0),b=ser(u,yi,1);let n=0,p=0,d=0;
+ months.forEach(m=>{if(a[m]!==null){n++;p+=a[m];d+=(b[m]||0)}});
+ return {n,p,d,rate:n?d/n:0,los:p?d/p:0}}
+const have=(u,yi)=>ser(u,yi,0).map((v,m)=>v!==null?m:-1).filter(m=>m>=0);
+const common=(u,y1,y0)=>have(u,y1).filter(m=>have(u,y0).includes(m));
+const pct=(a,b)=>b?(a-b)/b*100:null;
+const dl=(v,suf='%')=>v===null?'':`<span class="dl ${v>=0?'up':'dn'}">${v>=0?'▲':'▼'} ${fmt(Math.abs(v),1)}${suf}</span>`;
+
+async function load(){
+ cd=REFRESH_SEC;
+ const urls=[PUBLISHED_CSV_URL,`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`,`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`].filter(Boolean);
+ let ok=false;
+ for(const u of urls){try{const r=await fetch(u+(u.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'});if(!r.ok)continue;build(parseCSV(await r.text()));ok=true;break}catch(x){}}
+ if(ok){live=true;$('dot').className='dot';$('st').textContent='เชื่อมต่อ Google Sheet แล้ว (Live)'}
+ else{$('dot').className='dot err';$('st').textContent=live?'เชื่อมต่อไม่ได้ – แสดงข้อมูลล่าสุด':'เชื่อมต่อไม่ได้ – แสดงข้อมูลสำรอง';if(!Object.keys(ROWS).length)build(FALLBACK)}
+ $('upd').textContent='อัปเดตล่าสุด '+new Date().toLocaleTimeString('th-TH');
+ render();
+}
+
+function render(){
+ /* ตัวเลือกปี */
+ $('yrs').innerHTML='<span class="lbl">ปีงบประมาณ:</span>'+YEARS.map((y,i)=>{const n=Math.max(...UNITS.map(u=>have(u,i).length));return `<button class="chip ${UI.y===i?'on':''}" onclick="UI.y=${i};render()">${y}${n<12?` (${n} เดือน)`:''}</button>`}).join('');
+ const U=UNITS[UI.u];
+ if(!$('us').options.length)$('us').innerHTML=UNITS.map((u,i)=>`<option value="${i}">${u.n}</option>`).join('');
+ $('us').value=UI.u;$('ms').innerHTML=U.l.map((l,i)=>`<option value="${i}">${l}</option>`).join('');$('ms').value=UI.m;
+ const y=UI.y,prev=y>0?y-1:null;
+
+ /* KPI */
+ $('kpis').innerHTML=UNITS.map(u=>{const mo=have(u,y),a=agg(u,y,mo);
+  let da='',db='';
+  if(prev!==null){const cm=common(u,y,prev),A=agg(u,y,cm),B=agg(u,prev,cm);
+   if(cm.length){da=dl(pct(A.p,B.p));db=u.or?dl(A.rate-B.rate,' จุด%'):dl(pct(A.d,B.d))}}
+  if(!mo.length)return `<div class="card kpi"><h3>${u.n}</h3><div class="lbl" style="margin-top:10px">ยังไม่มีข้อมูลปี ${YEARS[y]}</div></div>`;
+  return `<div class="card kpi"><h3>${u.n}<span class="tag">${mo.length} เดือน</span></h3>
+  <div class="pair"><div><div class="big">${fmt(a.p)}</div><div class="lbl">${u.l[0]}</div>${da}</div>
+  <div><div class="big">${u.or?fmt(a.rate,2):fmt(a.d)}</div><div class="lbl">${u.or?'อัตราใช้ห้องผ่าตัดเฉลี่ย (%)':u.l[1]}</div>${db}</div></div>
+  ${u.or?'':`<div class="lbl" style="margin-top:8px">วันนอนเฉลี่ย/ราย: <b>${fmt(a.los,2)}</b> วัน</div>`}</div>`}).join('');
+ $('kpis').querySelectorAll('.kpi').forEach(()=>{});
+
+ /* กราฟ */
+ $('ct').textContent=`แนวโน้มรายเดือน – ${U.n}`;
+ const isRate=U.or&&UI.m===1,series=YEARS.map((yy,yi)=>({yy,yi,v:ser(U,yi,UI.m)})).filter(s=>s.v.some(x=>x!==null));
+ const mx0=Math.max(...series.flatMap(s=>s.v.filter(x=>x!==null)),1),top=isRate?100:Math.ceil(mx0*1.12/Math.pow(10,Math.floor(Math.log10(mx0))-1))*Math.pow(10,Math.floor(Math.log10(mx0))-1);
+ const L=58,R=14,Tp=14,B=36,W=760,H=300,pw=W-L-R,ph=H-Tp-B,X=i=>L+pw*(i/11),Y=v=>Tp+ph*(1-v/top);
+ let g='';for(let i=0;i<=4;i++){const v=top*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e3ecf0"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end" font-size="12" fill="#5f7387">${fmt(v,isRate?0:0)}</text>`}
+ SH.forEach((s,i)=>g+=`<text x="${X(i)}" y="${H-12}" text-anchor="middle" font-size="12" fill="#5f7387">${s}</text>`);
+ series.forEach(s=>{let d='',st=false;s.v.forEach((v,i)=>{if(v===null){st=false;return}d+=(st?'L':'M')+X(i)+' '+Y(v);st=true});
+  g+=`<path d="${d}" fill="none" stroke="${YC[s.yi]}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+  s.v.forEach((v,i)=>{if(v!==null)g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="4.5" fill="#fff" stroke="${YC[s.yi]}" stroke-width="2.5"><title>${SH[i]} ${s.yy}: ${fmt(v,isRate?2:0)}</title></circle>`})});
+ $('ch').innerHTML=g;
+ $('leg').innerHTML=series.map(s=>`<span><i style="background:${YC[s.yi]}"></i>ปี ${s.yy}</span>`).join('');
+
+ /* ประเด็นสำคัญ */
+ let ins='';
+ if(prev===null)ins='<li>ปี 2568 เป็นปีฐานสำหรับเปรียบเทียบ เลือกปี 2569 หรือ 2570 เพื่อดูการเปลี่ยนแปลง</li>';
+ else UNITS.forEach(u=>{const cm=common(u,y,prev);if(!cm.length)return;const A=agg(u,y,cm),Bq=agg(u,prev,cm);
+  const note=cm.length<12?` (เทียบเฉพาะ ${cm.length} เดือนที่มีข้อมูลทั้งสองปี)`:'';
+  if(u.or){const s=ser(u,y,1),mn=s.reduce((q,v,i)=>v!==null&&(q<0||v<s[q])?i:q,-1);
+   ins+=`<li><b>${u.n}</b>: ผู้ป่วยผ่าตัด ${dl(pct(A.p,Bq.p))} · อัตราใช้เฉลี่ย ${fmt(A.rate,2)}% (${A.rate-Bq.rate>=0?'เพิ่ม':'ลด'} ${fmt(Math.abs(A.rate-Bq.rate),2)} จุด%) · ต่ำสุด${SH[mn]} ${fmt(s[mn],2)}%${note}</li>`}
+  else ins+=`<li><b>${u.n}</b>: ผู้ป่วย ${dl(pct(A.p,Bq.p))} · วันนอน ${dl(pct(A.d,Bq.d))} · วันนอนเฉลี่ย/ราย ${fmt(Bq.los,2)} → <b>${fmt(A.los,2)}</b> วัน${note}</li>`});
+ $('ins').innerHTML=ins;
+
+ /* สัดส่วนวันนอน */
+ const crit=UNITS.slice(0,3).map(u=>({u,d:agg(u,y,have(u,y)).d})),tot=crit.reduce((s,x)=>s+x.d,0)||1;
+ $('stk').innerHTML=`<div class="stack">${crit.map(x=>`<div style="width:${x.d/tot*100}%;background:${x.u.col}" title="${x.u.n}"></div>`).join('')}</div>`+
+  crit.map(x=>`<div class="lbl"><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${x.u.col};margin-right:6px"></i>${x.u.n}: ${fmt(x.d)} วัน (${fmt(x.d/tot*100,1)}%)</div>`).join('');
+
+ /* ข้อควรตรวจสอบ */
+ $('warn').style.display=FLAGS.length?'block':'none';
+ $('warn').innerHTML='<b>ข้อควรตรวจสอบคุณภาพข้อมูล</b><br>'+FLAGS.map(f=>'• '+f).join('<br>')+'<br>• ชีตไม่มีจำนวนเตียงจริง จึงคำนวณอัตราครองเตียงไม่ได้ (แสดงเฉพาะวันนอนและวันนอนเฉลี่ย/ราย)';
+
+ /* ตาราง */
+ $('tt').textContent=`ตารางรายเดือน – ${U.n}`;
+ const yy=YEARS.map((_,i)=>i).filter(i=>have(U,i).length);
+ let h=`<tr><th>เดือน</th>${yy.map(i=>`<th>${YEARS[i]} ${U.l[0].split(' ')[0]}</th><th>${YEARS[i]} ${U.l[1].split(' ')[0]}${U.or?'(%)':''}</th>`).join('')}</tr>`;
+ h+=MONTHS.map((m,mi)=>`<tr><td>${m}</td>${yy.map(i=>{const a=cell(mi,U,i,0),b=cell(mi,U,i,1);return `<td>${a===null?'–':fmt(a)}</td><td>${b===null?'–':fmt(b,U.or?2:0)}</td>`}).join('')}</tr>`).join('');
+ h+=`<tr class="tot"><td>${U.or?'รวม / เฉลี่ย':'รวมทั้งสิ้น'}</td>${yy.map(i=>{const a=agg(U,i,have(U,i));return `<td>${fmt(a.p)}</td><td>${U.or?fmt(a.rate,2):fmt(a.d)}</td>`}).join('')}</tr>`;
+ $('tb').innerHTML=h;
+}
+load();setInterval(()=>{cd--;if(cd<=0)load();$('cd').textContent=Math.max(cd,0)},1000);
+</script>
+</body>
+</html>
